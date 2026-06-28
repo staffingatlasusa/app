@@ -18,7 +18,7 @@ export default async function AdminUsersPage() {
         <p className="text-sm text-[#8B8FA8] mt-0.5">{users.length} total registered users</p>
       </div>
 
-      <div className="bg-[#1A1D27] border border-[#2A2D3E] rounded-xl overflow-hidden">
+      <div className="bg-[#1A1D27] border border-[#2A2D3E] rounded-xl overflow-visible">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#2A2D3E] text-xs text-[#8B8FA8] uppercase tracking-wide">
