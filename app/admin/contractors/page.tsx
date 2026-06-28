@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import AddContractorButton from './AddContractorButton'
 
 type ContractorRow = {
   id: string; name: string; email: string; role: string; country: string
@@ -19,9 +20,12 @@ export default async function AdminContractorsPage() {
 
   return (
     <div className="p-8 text-[#F0F2FF]">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Contractors</h1>
-        <p className="text-sm text-[#8B8FA8] mt-0.5">{contractors?.length ?? 0} total</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Contractors</h1>
+          <p className="text-sm text-[#8B8FA8] mt-0.5">{contractors?.length ?? 0} total</p>
+        </div>
+        <AddContractorButton companies={(await db.from('companies').select('id, name').order('name')).data ?? []} />
       </div>
 
       <div className="bg-[#1A1D27] border border-[#2A2D3E] rounded-xl overflow-hidden">

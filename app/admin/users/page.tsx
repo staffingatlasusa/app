@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import type { User } from '@supabase/supabase-js'
 import UserActions from './UserActions'
+import AddUserButton from './AddUserButton'
 
 export default async function AdminUsersPage() {
   const db = createAdminClient()
@@ -13,9 +14,12 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="p-8 text-[#F0F2FF]">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Users</h1>
-        <p className="text-sm text-[#8B8FA8] mt-0.5">{users.length} total registered users</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Users</h1>
+          <p className="text-sm text-[#8B8FA8] mt-0.5">{users.length} total registered users</p>
+        </div>
+        <AddUserButton />
       </div>
 
       <div className="bg-[#1A1D27] border border-[#2A2D3E] rounded-xl overflow-visible">
