@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
 
   // Admin routes — JWT cookie check (lightweight, no jose in edge)
   if (pathname.startsWith('/admin')) {
-    if (pathname === '/admin/login') return NextResponse.next()
+    if (pathname.startsWith('/admin/login')) return NextResponse.next()
     const token = request.cookies.get('admin_session')?.value
     if (!token) return NextResponse.redirect(new URL('/admin/login', request.url))
     // Validate JWT structure — full verify happens in server components via jose (Node runtime)
