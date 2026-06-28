@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import type { PublicContractor } from '@/types/contractor'
+
+type PublicContractor = {
+  id: string; display_name: string; photo_url: string | null;
+  role: string; bio: string | null; rate_usd: number; location: string;
+  availability: string | null; skills: string[]; linkedin_url: string | null;
+  portfolio_url: string | null; pool_type: string;
+}
 
 // Cache for 60 seconds — talent browse doesn't need real-time updates
 export const revalidate = 60
