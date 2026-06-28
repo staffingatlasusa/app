@@ -25,7 +25,7 @@ export default async function AdminContractorsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {(contractors ?? []).map((c: any) => (
+            {(contractors ?? []).map((c) => (
               <tr key={c.id} className="hover:bg-slate-50">
                 <td className="px-6 py-3 font-medium text-slate-900">{c.name}</td>
                 <td className="px-6 py-3 text-slate-500">{c.companies?.name ?? '—'}</td>
