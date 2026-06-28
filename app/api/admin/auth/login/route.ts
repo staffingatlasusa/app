@@ -43,15 +43,7 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 8,
-      path: '/admin',
-    })
-    // Also set for /api/admin routes
-    response.cookies.set('admin_session', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 8,
-      path: '/api/admin',
+      path: '/',
     })
     return response
   } catch (err) {
