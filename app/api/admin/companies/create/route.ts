@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
   // Find or create the owner user
   const { data: { users } } = await db.auth.admin.listUsers()
-  let owner = users.find(u => u.email === owner_email.toLowerCase())
+  let owner = users.find((u: { email?: string }) => u.email === owner_email.toLowerCase())
 
   if (!owner) {
     const tempPassword = Math.random().toString(36).slice(-10) + 'A1!'
