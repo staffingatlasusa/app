@@ -59,6 +59,16 @@ export default function Sidebar() {
         })}
       </nav>
 
+      {/* Copyright */}
+      <div className="px-5 py-3 text-center">
+        <p className="text-[10px] text-white/20 leading-relaxed">
+          © {new Date().getFullYear()} StaffingAtlas<br />
+          <a href="https://aiotechlab.com" target="_blank" rel="noopener" className="hover:text-white/40 transition-colors">
+            an AIO Technologies company
+          </a>
+        </p>
+      </div>
+
       {/* Bottom */}
       <div className="px-3 py-4 border-t border-white/10 space-y-0.5">
         <Link
