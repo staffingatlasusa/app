@@ -1,0 +1,15 @@
+﻿{
+  "mcpServers": {
+    "token-optimizer": {
+      "command": "npx",
+      "args": ["-y", "token-optimizer-mcp"]
+    },
+    "token-savior": {
+      "command": "C:\\Users\\Admin\\.local\\token-savior-venv\\Scripts\\token-savior.exe",
+      "env": {
+        "WORKSPACE_ROOTS": "C:\\Users\\Admin\\Documents\\staffingatlas.online",
+        "TOKEN_SAVIOR_CLIENT": "claude-code"
+      }
+    }
+  }
+}
