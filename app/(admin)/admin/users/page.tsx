@@ -1,14 +1,15 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { createClient } from '@/lib/supabase/server'
+import type { User } from '@supabase/supabase-js'
 
 export default async function AdminUsersPage() {
   const supabase = await createClient()
   const admin = createAdminClient()
 
   const { data: roles } = await supabase.from('user_roles').select('user_id, role')
-  const { data: { users } } = await admin.auth.admin.listUsers()
+  const { data: { users } } = await admin.auth.admin.listUsers() as { data: { users: User[] } }
 
-  const roleMap = Object.fromEntries((roles ?? []).map(r => [r.user_id, r.role]))
+  const roleMap = Object.fromEntries((roles ?? []).map((r: { user_id: string; role: string }) => [r.user_id, r.role]))
 
   return (
     <div>
@@ -26,7 +27,7 @@ export default async function AdminUsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {users.map(u => (
+            {users.map((u: User) => (
               <tr key={u.id} className="hover:bg-slate-50">
                 <td className="px-6 py-3 font-medium text-slate-900">{u.email}</td>
                 <td className="px-6 py-3">
