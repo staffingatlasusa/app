@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import type { User } from '@supabase/supabase-js'
+import Link from 'next/link'
 import UserActions from './UserActions'
 import AddUserButton from './AddUserButton'
 
@@ -37,7 +38,9 @@ export default async function AdminUsersPage() {
           <tbody className="divide-y divide-[#2A2D3E]">
             {users.map((u: User) => (
               <tr key={u.id} className="hover:bg-[#0F1117] transition-colors">
-                <td className="px-5 py-3 font-medium">{u.email}</td>
+                <td className="px-5 py-3 font-medium">
+                  <Link href={`/admin/users/${u.id}`} className="hover:text-[#3857F1] transition-colors">{u.email}</Link>
+                </td>
                 <td className="px-5 py-3 text-[#8B8FA8]">{companyMap[u.id] ?? '—'}</td>
                 <td className="px-5 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
