@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { DollarSign } from 'lucide-react'
+import Link from 'next/link'
 import PayrollActions from './PayrollActions'
+import PayrollToolbar from './PayrollToolbar'
 
 export default async function PayrollPage() {
   const supabase = await createClient()
@@ -25,6 +27,19 @@ export default async function PayrollPage() {
           <h1 className="text-2xl font-bold text-slate-900">Payroll</h1>
           <p className="text-sm text-slate-500 mt-0.5">{list.length} records</p>
         </div>
+        <PayrollToolbar
+          companyId={company?.id ?? ''}
+          exportRows={list.map(s => ({
+            contractor: (s.contractors as { name: string })?.name ?? '',
+            role: (s.contractors as { role: string })?.role ?? '',
+            period_start: s.period_start,
+            period_end: s.period_end,
+            total_hours: Number(s.total_hours),
+            total_amount: Number(s.total_amount),
+            currency: s.currency,
+            status: s.status,
+          }))}
+        />
       </div>
 
       {/* Summary cards */}
@@ -85,7 +100,8 @@ export default async function PayrollPage() {
                       {s.status}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-right">
+                  <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                    <Link href={`/payroll/${s.id}/invoice`} className="text-xs font-semibold text-slate-400 hover:text-navy mr-3">Invoice</Link>
                     <PayrollActions id={s.id} status={s.status} />
                   </td>
                 </tr>
