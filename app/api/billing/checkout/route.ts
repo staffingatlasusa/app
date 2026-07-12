@@ -18,6 +18,18 @@ export async function POST(request: Request) {
     .eq('owner_id', user.id).maybeSingle()
   if (!company) return NextResponse.json({ error: 'No company found' }, { status: 404 })
 
+  // Already subscribed? Plan changes must go through the billing portal —
+  // a second Checkout would create a second, parallel subscription.
+  const { data: full } = await db.from('companies')
+    .select('stripe_subscription_id').eq('id', company.id).single()
+  if (full?.stripe_subscription_id && company.stripe_customer_id) {
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: company.stripe_customer_id,
+      return_url: `${APP}/settings`,
+    })
+    return NextResponse.json({ url: portal.url })
+  }
+
   // Reuse the Stripe customer if one exists
   let customerId = company.stripe_customer_id as string | null
   if (!customerId) {

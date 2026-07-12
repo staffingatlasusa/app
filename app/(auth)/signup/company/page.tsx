@@ -80,6 +80,12 @@ export default function CompanySignupPage() {
             </button>
 
             <p className="text-center text-xs text-slate-400">No credit card required · 14 days free</p>
+            <p className="text-center text-xs text-slate-400">
+              By signing up you agree to our{' '}
+              <a href="https://staffingatlas.com/terms-of-service/" target="_blank" rel="noopener" className="underline hover:text-slate-600">Terms</a>
+              {' '}and{' '}
+              <a href="https://staffingatlas.com/privacy-policy/" target="_blank" rel="noopener" className="underline hover:text-slate-600">Privacy Policy</a>.
+            </p>
           </form>
 
           <p className="text-center text-sm text-slate-500 mt-6">
