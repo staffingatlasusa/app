@@ -30,7 +30,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
   const { data: applications } = await supabase
     .from('job_applications')
-    .select('id, status, cover_note, expected_rate, created_at, contractor_profiles(id, name, role, country, hourly_rate, skills, bio, email, user_id)')
+    .select('id, status, cover_note, expected_rate, created_at, contractor_profiles(id, name, role, country, hourly_rate, skills, bio, email, user_id, cv_path, linkedin_url, portfolio_url, github_url, portfolio_items(id, storage_path, caption))')
     .eq('job_id', job.id)
     .order('created_at', { ascending: false })
 
@@ -80,7 +80,9 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                       profile={a.contractor_profiles as unknown as {
                         id: string; name: string; role: string | null; country: string | null
                         hourly_rate: number | null; skills: string[] | null; bio: string | null
-                        email: string; user_id: string
+                        email: string; user_id: string; cv_path: string | null
+                        linkedin_url: string | null; portfolio_url: string | null; github_url: string | null
+                        portfolio_items: { id: string; storage_path: string; caption: string | null }[]
                       } | null}
                       companyId={company!.id}
                       jobTitle={job.title}

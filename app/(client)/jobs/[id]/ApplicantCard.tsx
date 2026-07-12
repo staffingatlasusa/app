@@ -11,7 +11,9 @@ type Application = {
 type Profile = {
   id: string; name: string; role: string | null; country: string | null
   hourly_rate: number | null; skills: string[] | null; bio: string | null
-  email: string; user_id: string
+  email: string; user_id: string; cv_path: string | null
+  linkedin_url: string | null; portfolio_url: string | null; github_url: string | null
+  portfolio_items: { id: string; storage_path: string; caption: string | null }[]
 } | null
 
 const NEXT_STAGES: Record<string, { label: string; to: string }[]> = {
@@ -29,6 +31,13 @@ export default function ApplicantCard({ application, profile, companyId, jobTitl
   const [error, setError] = useState('')
   const router = useRouter()
   const supabase = createClient()
+
+  async function openCV() {
+    if (!profile?.cv_path) return
+    const { data } = await supabase.storage.from('cvs').createSignedUrl(profile.cv_path, 300)
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    else setError('Could not open CV')
+  }
 
   async function move(to: string) {
     setLoading(true)
@@ -103,6 +112,31 @@ export default function ApplicantCard({ application, profile, companyId, jobTitl
         <p className="text-sm text-slate-600 mt-3 leading-relaxed border-l-2 border-slate-200 pl-3">
           {application.cover_note}
         </p>
+      )}
+
+      {(profile.portfolio_items ?? []).length > 0 && (
+        <div className="flex gap-2 mt-3">
+          {(profile.portfolio_items ?? []).slice(0, 4).map(item => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={item.id}
+              src={supabase.storage.from('portfolio').getPublicUrl(item.storage_path).data.publicUrl}
+              alt={item.caption ?? 'Work sample'} title={item.caption ?? ''}
+              className="w-16 h-16 rounded-lg object-cover border border-slate-200 cursor-pointer hover:opacity-80"
+              onClick={() => window.open(supabase.storage.from('portfolio').getPublicUrl(item.storage_path).data.publicUrl, '_blank')}
+            />
+          ))}
+        </div>
+      )}
+
+      {(profile.cv_path || profile.linkedin_url || profile.portfolio_url || profile.github_url) && (
+        <div className="flex items-center gap-3 mt-3 flex-wrap text-xs font-semibold">
+          {profile.cv_path && (
+            <button onClick={openCV} className="text-navy hover:underline">View CV</button>
+          )}
+          {profile.linkedin_url && <a href={profile.linkedin_url} target="_blank" rel="noopener" className="text-slate-500 hover:text-navy">LinkedIn</a>}
+          {profile.portfolio_url && <a href={profile.portfolio_url} target="_blank" rel="noopener" className="text-slate-500 hover:text-navy">Portfolio</a>}
+          {profile.github_url && <a href={profile.github_url} target="_blank" rel="noopener" className="text-slate-500 hover:text-navy">GitHub</a>}
+        </div>
       )}
 
       <div className="flex items-center gap-2 mt-4">

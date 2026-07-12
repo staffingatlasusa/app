@@ -7,7 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 type Profile = {
   id: string; name: string; role: string | null; country: string | null
   bio: string | null; hourly_rate: number | null; skills: string[] | null; status: string
-  photo_url?: string | null
+  photo_url?: string | null; cv_path?: string | null
+  linkedin_url?: string | null; portfolio_url?: string | null; github_url?: string | null
 } | null
 
 export default function ProfileForm({ userId, email, profile }: { userId: string; email: string; profile: Profile }) {
@@ -18,13 +19,32 @@ export default function ProfileForm({ userId, email, profile }: { userId: string
     bio: profile?.bio ?? '',
     hourly_rate: profile?.hourly_rate?.toString() ?? '',
     skills: (profile?.skills ?? []).join(', '),
+    linkedin_url: profile?.linkedin_url ?? '',
+    portfolio_url: profile?.portfolio_url ?? '',
+    github_url: profile?.github_url ?? '',
   })
+  const [cvPath, setCvPath] = useState(profile?.cv_path ?? '')
+  const [cvUploading, setCvUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   const [photoUrl, setPhotoUrl] = useState(profile?.photo_url ?? '')
   const [uploading, setUploading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  async function uploadCV(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { setMsg('CV must be under 5MB'); return }
+    setCvUploading(true)
+    setMsg('')
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'pdf'
+    const path = `${userId}/cv.${ext}`
+    const { error } = await supabase.storage.from('cvs').upload(path, file, { upsert: true })
+    setCvUploading(false)
+    if (error) { setMsg(error.message); return }
+    setCvPath(path)
+  }
 
   async function uploadPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -59,6 +79,10 @@ export default function ProfileForm({ userId, email, profile }: { userId: string
       skills: form.skills.split(',').map(s => s.trim()).filter(Boolean),
       status: profile?.status ?? 'pending',
       photo_url: photoUrl || null,
+      cv_path: cvPath || null,
+      linkedin_url: form.linkedin_url.trim() || null,
+      portfolio_url: form.portfolio_url.trim() || null,
+      github_url: form.github_url.trim() || null,
     }
     const { error } = profile
       ? await supabase.from('contractor_profiles').update(payload).eq('id', profile.id)
@@ -142,6 +166,33 @@ export default function ProfileForm({ userId, email, profile }: { userId: string
         <textarea value={form.bio} onChange={e => set('bio', e.target.value)} rows={4}
           placeholder="Tell companies about your experience"
           className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy resize-none" />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">CV / Resume</label>
+        <div className="flex items-center gap-3">
+          <label className="inline-block px-3.5 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors">
+            {cvUploading ? 'Uploading…' : cvPath ? 'Replace CV' : 'Upload CV'}
+            <input type="file" accept=".pdf,.doc,.docx" onChange={uploadCV} className="hidden" disabled={cvUploading} />
+          </label>
+          {cvPath && <span className="text-xs text-green-600 font-medium">CV on file ✓ (save to confirm)</span>}
+        </div>
+        <p className="text-xs text-slate-400 mt-1.5">PDF or Word · max 5MB · shown to companies you apply to</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { key: 'linkedin_url', label: 'LinkedIn', placeholder: 'linkedin.com/in/…' },
+          { key: 'portfolio_url', label: 'Portfolio site', placeholder: 'yoursite.com' },
+          { key: 'github_url', label: 'GitHub / Behance', placeholder: 'github.com/…' },
+        ].map(({ key, label, placeholder }) => (
+          <div key={key}>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
+            <input type="url" value={form[key as keyof typeof form]} onChange={e => set(key, e.target.value)}
+              placeholder={`https://${placeholder}`}
+              className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy" />
+          </div>
+        ))}
       </div>
 
       <button type="submit" disabled={saving}
