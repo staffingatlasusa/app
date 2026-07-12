@@ -16,14 +16,17 @@ export default function PayrollToolbar({ companyId, exportRows }: { companyId: s
   const router = useRouter()
   const supabase = createClient()
 
-  // Aggregate last month's approved timesheets into draft summaries
-  async function generate() {
+  // Aggregate a month's approved timesheets into draft summaries.
+  // monthOffset 0 = current month (to date), 1 = last month.
+  async function generate(monthOffset: number) {
     setGenerating(true)
     setMsg('')
 
     const now = new Date()
-    const periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    const periodEnd = new Date(now.getFullYear(), now.getMonth(), 0)
+    const periodStart = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1)
+    const periodEnd = monthOffset === 0
+      ? now
+      : new Date(now.getFullYear(), now.getMonth() - monthOffset + 1, 0)
     const startStr = periodStart.toISOString().slice(0, 10)
     const endStr = periodEnd.toISOString().slice(0, 10)
 
@@ -60,8 +63,9 @@ export default function PayrollToolbar({ companyId, exportRows }: { companyId: s
         }
       })
 
+    const periodLabel = monthOffset === 0 ? 'this month' : 'last month'
     if (inserts.length === 0) {
-      setMsg(already.size > 0 ? 'Summaries for last month already exist' : 'No approved timesheets found for last month')
+      setMsg(already.size > 0 ? `Summaries for ${periodLabel} already exist` : `No approved timesheets found for ${periodLabel}`)
       setGenerating(false)
       return
     }
@@ -94,10 +98,14 @@ export default function PayrollToolbar({ companyId, exportRows }: { companyId: s
         className="flex items-center gap-2 px-3.5 py-2 border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-40">
         <Download size={14} /> Export CSV
       </button>
-      <button onClick={generate} disabled={generating}
+      <button onClick={() => generate(1)} disabled={generating}
+        className="flex items-center gap-2 px-3.5 py-2 border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-60">
+        Last month
+      </button>
+      <button onClick={() => generate(0)} disabled={generating}
         className="flex items-center gap-2 px-3.5 py-2 bg-navy text-white text-sm font-semibold rounded-lg hover:bg-navy-deep transition-colors disabled:opacity-60">
         <RefreshCw size={14} className={generating ? 'animate-spin' : ''} />
-        {generating ? 'Generating…' : 'Generate last month'}
+        {generating ? 'Generating…' : 'Generate this month'}
       </button>
     </div>
   )
