@@ -9,6 +9,7 @@ export default function ContractorSignupPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', role: '', country: 'Philippines' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [confirmSent, setConfirmSent] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -19,25 +20,17 @@ export default function ContractorSignupPage() {
     setLoading(true)
     setError('')
 
+    // Profile record is created by the handle_new_user DB trigger from this metadata
     const { data, error: authError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { full_name: form.name, account_type: 'contractor' } },
+      options: { data: { full_name: form.name, account_type: 'contractor', role: form.role, country: form.country } },
     })
 
     if (authError) { setError(authError.message); setLoading(false); return }
 
-    if (data.user) {
-      const { error: profileError } = await supabase.from('contractor_profiles').insert({
-        user_id: data.user.id,
-        name: form.name,
-        email: form.email,
-        role: form.role,
-        country: form.country,
-        status: 'pending',
-      })
-      if (profileError) { setError(profileError.message); setLoading(false); return }
-    }
+    // Email confirmation enabled: no session until they click the link
+    if (!data.session) { setConfirmSent(true); setLoading(false); return }
 
     fetch('/api/notify', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -46,6 +39,24 @@ export default function ContractorSignupPage() {
 
     router.push('/portal')
     router.refresh()
+  }
+
+  if (confirmSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-md text-center">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-10">
+            <p className="text-3xl mb-4">📬</p>
+            <h1 className="text-lg font-bold text-slate-900 mb-2">Confirm your email</h1>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              We sent a confirmation link to <strong>{form.email}</strong>.
+              Click it to activate your account, then sign in to access your portal.
+            </p>
+            <Link href="/login" className="inline-block mt-6 text-sm font-semibold text-navy hover:underline">Go to sign in</Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
