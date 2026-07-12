@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import PerformanceNotes from './PerformanceNotes'
+import DocumentVault from '@/components/DocumentVault'
 
 export default async function ContractorDetailPage({ params }: { params: { id: string } }) {
   await requireActivePlan()
@@ -19,10 +20,12 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
     .maybeSingle()
   if (!contractor) notFound()
 
-  const [{ data: timesheets }, { data: notes }] = await Promise.all([
+  const [{ data: timesheets }, { data: notes }, { data: documents }] = await Promise.all([
     supabase.from('timesheets').select('id, date, hours_worked, status, task_description')
       .eq('contractor_id', contractor.id).order('date', { ascending: false }).limit(15),
     supabase.from('performance_notes').select('id, rating, note, created_at')
+      .eq('contractor_id', contractor.id).order('created_at', { ascending: false }),
+    supabase.from('documents').select('id, name, storage_path, category, size, created_at')
       .eq('contractor_id', contractor.id).order('created_at', { ascending: false }),
   ])
 
@@ -93,6 +96,16 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
             initialNotes={notes ?? []}
           />
         </div>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-3">Documents</h2>
+        <DocumentVault
+          companyId={company!.id}
+          contractorId={contractor.id}
+          initialDocs={documents ?? []}
+          canDelete
+        />
       </div>
     </div>
   )

@@ -37,12 +37,19 @@ export default function PortalChat({
   async function send() {
     if (!draft.trim() || sending || !ownerId) return
     setSending(true)
-    await supabase.from('messages').insert({
+    const { data } = await supabase.from('messages').insert({
       company_id: companyId,
       sender_id: currentUserId,
       recipient_id: ownerId,
       content: draft.trim(),
-    })
+    }).select('id').single()
+    if (data) {
+      // Email the recipient (throttled server-side); never blocks the send
+      fetch('/api/notify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'new_message', id: data.id }),
+      }).catch(() => {})
+    }
     setDraft('')
     setSending(false)
   }

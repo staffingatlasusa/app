@@ -96,6 +96,35 @@ export async function POST(request: Request) {
         })
         break
       }
+      case 'new_message': {
+        // Notify the recipient of a message they haven't seen; throttled to
+        // one email per hour per pair so threads don't spam inboxes.
+        const { data: msg } = await db.from('messages')
+          .select('sender_id, recipient_id, content, created_at')
+          .eq('id', id).maybeSingle()
+        if (!msg || msg.sender_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+        const hourAgo = new Date(Date.now() - 3600_000).toISOString()
+        const { count } = await db.from('messages')
+          .select('id', { count: 'exact', head: true })
+          .eq('sender_id', msg.sender_id).eq('recipient_id', msg.recipient_id)
+          .gte('created_at', hourAgo).lt('created_at', msg.created_at)
+        if ((count ?? 0) > 0) break // already messaged within the hour — skip email
+
+        const { data: { user: recipient } } = await db.auth.admin.getUserById(msg.recipient_id)
+        if (!recipient?.email) break
+        const senderName = (user.user_metadata?.full_name as string) ?? 'Someone'
+        await sendRawEmail({
+          to: recipient.email,
+          subject: `New message from ${senderName} on StaffingAtlas`,
+          html: wrap(
+            `${senderName} sent you a message`,
+            `"${String(msg.content).slice(0, 140)}${String(msg.content).length > 140 ? '…' : ''}"`,
+            { label: 'Reply on StaffingAtlas', href: `${APP}/` }
+          ),
+        })
+        break
+      }
       case 'portal_invite': {
         // Company owner invites their contractor to create a portal login
         const { data: contractor } = await db.from('contractors')
