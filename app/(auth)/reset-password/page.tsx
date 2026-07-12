@@ -30,10 +30,11 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="text-2xl font-black text-navy-deep mb-1">
+          <a href="https://staffingatlas.com" className="inline-block text-2xl font-black text-navy-deep mb-1 hover:opacity-80 transition-opacity">
             Staffing<span className="text-amber">Atlas</span>
-          </div>
+            </a>
           <p className="text-slate-500 text-sm">Set a new password</p>
+          <a href="https://staffingatlas.com" className="inline-block mt-2 text-xs text-slate-400 hover:text-navy transition-colors">&larr; Back to staffingatlas.com</a>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">

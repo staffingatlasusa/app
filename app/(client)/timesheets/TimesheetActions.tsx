@@ -13,6 +13,11 @@ export default function TimesheetActions({ id }: { id: string }) {
   async function update(status: 'approved' | 'rejected') {
     setLoading(status === 'approved' ? 'approve' : 'reject')
     await supabase.from('timesheets').update({ status }).eq('id', id)
+    // Notify the contractor; email failure never blocks the action
+    fetch('/api/notify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'timesheet_status', id }),
+    }).catch(() => {})
     router.refresh()
     setLoading(null)
   }

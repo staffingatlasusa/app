@@ -89,7 +89,7 @@ export default async function PayrollPage() {
                   </td>
                   <td className="px-5 py-3.5 font-medium">{Number(s.total_hours).toFixed(1)}h</td>
                   <td className="px-5 py-3.5 font-semibold text-slate-900">
-                    ${Number(s.total_amount).toLocaleString()} {s.currency}
+                    {s.currency} {Number(s.total_amount).toLocaleString()}
                   </td>
                   <td className="px-5 py-3.5">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${

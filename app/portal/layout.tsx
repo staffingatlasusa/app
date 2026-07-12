@@ -21,7 +21,7 @@ export default async function PortalLayout({ children }: { children: React.React
   const name = contractor?.name ?? profile?.name ?? user.email ?? 'Contractor'
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
       <PortalSidebar contractorName={name} />
       <main className="flex-1 overflow-auto">
         {children}

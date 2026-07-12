@@ -8,7 +8,7 @@ export default async function ClientLayout({ children }: { children: React.React
   if (!user) redirect('/login')
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
       <Sidebar />
       <main className="flex-1 overflow-auto">
         {children}

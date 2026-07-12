@@ -8,7 +8,7 @@ export default async function PortalProfilePage() {
 
   const { data: profile } = await supabase
     .from('contractor_profiles')
-    .select('id, name, role, country, bio, hourly_rate, skills, status')
+    .select('id, name, role, country, bio, hourly_rate, skills, status, photo_url')
     .eq('user_id', ctx.userId)
     .maybeSingle()
 

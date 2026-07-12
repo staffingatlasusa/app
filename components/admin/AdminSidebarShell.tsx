@@ -1,11 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, Building2, Briefcase, CheckSquare,
   Handshake, FileText, DollarSign, CreditCard, Star,
-  BarChart2, Megaphone, Settings, LogOut, ChevronRight
+  BarChart2, Megaphone, Settings, LogOut, ChevronRight, Menu, X
 } from 'lucide-react'
 import type { AdminSession } from '@/lib/admin/auth'
 
@@ -28,6 +29,7 @@ const nav = [
 export default function AdminSidebarShell({ session }: { session: AdminSession }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [open, setOpen] = useState(false)
 
   async function signOut() {
     await fetch('/api/admin/auth/logout', { method: 'POST' })
@@ -35,7 +37,26 @@ export default function AdminSidebarShell({ session }: { session: AdminSession }
   }
 
   return (
-    <aside className="w-60 shrink-0 bg-[#1A1D27] border-r border-[#2A2D3E] flex flex-col min-h-screen">
+    <>
+      {/* Mobile top bar */}
+      <div className="md:hidden sticky top-0 z-30 bg-[#1A1D27] border-b border-[#2A2D3E] flex items-center justify-between px-4 py-3">
+        <div>
+          <p className="text-[10px] font-semibold text-[#3857F1] uppercase tracking-widest">Admin Panel</p>
+          <p className="text-sm font-bold text-[#F0F2FF]">StaffingAtlas</p>
+        </div>
+        <button onClick={() => setOpen(!open)} className="text-[#8B8FA8] hover:text-[#F0F2FF] p-1" aria-label="Menu">
+          {open ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </div>
+
+      {/* Backdrop */}
+      {open && <div className="md:hidden fixed inset-0 z-30 bg-black/50" onClick={() => setOpen(false)} />}
+
+    <aside
+      onClick={() => setOpen(false)}
+      className={`w-60 shrink-0 bg-[#1A1D27] border-r border-[#2A2D3E] flex-col min-h-screen z-40 fixed inset-y-0 left-0 transform transition-transform md:static md:translate-x-0 md:flex ${
+        open ? 'translate-x-0 flex' : '-translate-x-full hidden md:flex'
+      }`}>
       <div className="px-5 py-5 border-b border-[#2A2D3E]">
         <p className="text-[10px] font-semibold text-[#3857F1] uppercase tracking-widest mb-1">Admin Panel</p>
         <p className="text-base font-bold text-[#F0F2FF]">StaffingAtlas</p>
@@ -76,5 +97,6 @@ export default function AdminSidebarShell({ session }: { session: AdminSession }
         </button>
       </div>
     </aside>
+    </>
   )
 }

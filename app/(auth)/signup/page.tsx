@@ -8,10 +8,11 @@ export default function SignupChooserPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-lg">
         <div className="text-center mb-10">
-          <div className="text-2xl font-black text-navy-deep mb-1">
+          <a href="https://staffingatlas.com" className="inline-block text-2xl font-black text-navy-deep mb-1 hover:opacity-80 transition-opacity">
             Staffing<span className="text-amber">Atlas</span>
-          </div>
+            </a>
           <p className="text-slate-500 text-sm">Get started — choose how you want to use StaffingAtlas</p>
+          <a href="https://staffingatlas.com" className="inline-block mt-2 text-xs text-slate-400 hover:text-navy transition-colors">&larr; Back to staffingatlas.com</a>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

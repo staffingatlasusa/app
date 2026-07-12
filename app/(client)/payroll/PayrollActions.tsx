@@ -13,6 +13,13 @@ export default function PayrollActions({ id, status }: { id: string; status: str
     setLoading(true)
     const next = status === 'draft' ? 'approved' : 'paid'
     await supabase.from('payroll_summaries').update({ status: next }).eq('id', id)
+    if (next === 'approved') {
+      // Notify the contractor their summary is ready; failure never blocks
+      fetch('/api/notify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'payroll_ready', id }),
+      }).catch(() => {})
+    }
     router.refresh()
     setLoading(false)
   }

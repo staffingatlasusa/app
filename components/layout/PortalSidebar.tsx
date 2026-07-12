@@ -1,10 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Clock, CheckSquare, DollarSign,
-  MessageSquare, User, LogOut, ChevronRight
+  MessageSquare, User, LogOut, ChevronRight, Menu, X
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -20,6 +21,7 @@ export default function PortalSidebar({ contractorName }: { contractorName: stri
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [open, setOpen] = useState(false)
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -28,7 +30,25 @@ export default function PortalSidebar({ contractorName }: { contractorName: stri
   }
 
   return (
-    <aside className="w-60 min-h-screen bg-navy-deep flex flex-col shrink-0">
+    <>
+      {/* Mobile top bar */}
+      <div className="md:hidden sticky top-0 z-30 bg-navy-deep flex items-center justify-between px-4 py-3 border-b border-white/10">
+        <Link href="/portal" className="text-lg font-black text-white tracking-tight">
+          Staffing<span className="text-amber">Atlas</span>
+        </Link>
+        <button onClick={() => setOpen(!open)} className="text-white/70 hover:text-white p-1" aria-label="Menu">
+          {open ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </div>
+
+      {/* Backdrop */}
+      {open && <div className="md:hidden fixed inset-0 z-30 bg-black/50" onClick={() => setOpen(false)} />}
+
+    <aside
+      onClick={() => setOpen(false)}
+      className={`w-60 min-h-screen bg-navy-deep flex-col shrink-0 z-40 fixed inset-y-0 left-0 transform transition-transform md:static md:translate-x-0 md:flex ${
+        open ? 'translate-x-0 flex' : '-translate-x-full hidden md:flex'
+      }`}>
       <div className="px-6 py-5 border-b border-white/10">
         <Link href="/portal" className="text-xl font-black text-white tracking-tight">
           Staffing<span className="text-amber">Atlas</span>
@@ -83,5 +103,6 @@ export default function PortalSidebar({ contractorName }: { contractorName: stri
         </button>
       </div>
     </aside>
+    </>
   )
 }

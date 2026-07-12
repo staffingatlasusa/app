@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 type Profile = {
   id: string; name: string; role: string | null; country: string | null
   bio: string | null; hourly_rate: number | null; skills: string[] | null; status: string
+  photo_url?: string | null
 } | null
 
 export default function ProfileForm({ userId, email, profile }: { userId: string; email: string; profile: Profile }) {
@@ -20,8 +21,26 @@ export default function ProfileForm({ userId, email, profile }: { userId: string
   })
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
+  const [photoUrl, setPhotoUrl] = useState(profile?.photo_url ?? '')
+  const [uploading, setUploading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  async function uploadPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) { setMsg('Photo must be under 2MB'); return }
+    setUploading(true)
+    setMsg('')
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
+    const path = `${userId}/avatar.${ext}`
+    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+    if (error) { setMsg(error.message); setUploading(false); return }
+    const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+    // Cache-bust so the new photo shows immediately
+    setPhotoUrl(`${data.publicUrl}?t=${Date.now()}`)
+    setUploading(false)
+  }
 
   function set(key: string, value: string) { setForm(f => ({ ...f, [key]: value })) }
 
@@ -39,6 +58,7 @@ export default function ProfileForm({ userId, email, profile }: { userId: string
       hourly_rate: form.hourly_rate ? parseFloat(form.hourly_rate) : null,
       skills: form.skills.split(',').map(s => s.trim()).filter(Boolean),
       status: profile?.status ?? 'pending',
+      photo_url: photoUrl || null,
     }
     const { error } = profile
       ? await supabase.from('contractor_profiles').update(payload).eq('id', profile.id)
@@ -65,6 +85,22 @@ export default function ProfileForm({ userId, email, profile }: { userId: string
           }`}>{profile.status}</span>
         </div>
       )}
+
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+          {photoUrl
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={photoUrl} alt="Profile photo" className="w-full h-full object-cover" />
+            : <span className="text-xl font-bold text-slate-300">{(form.name || '?').charAt(0).toUpperCase()}</span>}
+        </div>
+        <div>
+          <label className="inline-block px-3.5 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors">
+            {uploading ? 'Uploading…' : photoUrl ? 'Change photo' : 'Upload photo'}
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadPhoto} className="hidden" disabled={uploading} />
+          </label>
+          <p className="text-xs text-slate-400 mt-1.5">JPG, PNG or WebP · max 2MB</p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
