@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { requireActivePlan } from '@/lib/plan'
 import { Users, Clock, CheckSquare, DollarSign, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
 
 async function getData(companyId: string) {
+  await requireActivePlan()
   const supabase = await createClient()
 
   const [contractors, timesheets, tasks, payroll] = await Promise.all([

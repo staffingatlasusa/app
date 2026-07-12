@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
+import { requireActivePlan } from '@/lib/plan'
 import { notFound } from 'next/navigation'
 import PrintButton from './PrintButton'
 
 export default async function InvoicePage({ params }: { params: { id: string } }) {
+  await requireActivePlan()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: company } = await supabase.from('companies').select('id, name, country').eq('owner_id', user!.id).single()

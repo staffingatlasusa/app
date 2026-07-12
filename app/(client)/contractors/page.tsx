@@ -1,8 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { requireActivePlan } from '@/lib/plan'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
+import InviteButton from './InviteButton'
 
 export default async function ContractorsPage() {
+  await requireActivePlan()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: company } = await supabase.from('companies').select('id').eq('owner_id', user!.id).single()
@@ -48,6 +51,7 @@ export default async function ContractorsPage() {
                 <th className="text-left px-5 py-3 font-semibold">Rate</th>
                 <th className="text-left px-5 py-3 font-semibold">Type</th>
                 <th className="text-left px-5 py-3 font-semibold">Status</th>
+                <th className="text-left px-5 py-3 font-semibold">Portal</th>
                 <th className="px-5 py-3" />
               </tr>
             </thead>
@@ -57,7 +61,7 @@ export default async function ContractorsPage() {
                   <td className="px-5 py-3.5 font-medium text-slate-900">{c.name}</td>
                   <td className="px-5 py-3.5 text-slate-600">{c.role}</td>
                   <td className="px-5 py-3.5 text-slate-500">{c.country}</td>
-                  <td className="px-5 py-3.5 font-medium">${c.hourly_rate}/{c.currency}</td>
+                  <td className="px-5 py-3.5 font-medium">{c.currency} {Number(c.hourly_rate).toFixed(2)}/hr</td>
                   <td className="px-5 py-3.5">
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 capitalize">
                       {c.contract_type}
@@ -71,6 +75,11 @@ export default async function ContractorsPage() {
                     }`}>
                       {c.status}
                     </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    {c.user_id
+                      ? <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700">Active</span>
+                      : <InviteButton contractorId={c.id} />}
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     <Link href={`/contractors/${c.id}`} className="text-xs font-medium text-navy hover:underline">View</Link>

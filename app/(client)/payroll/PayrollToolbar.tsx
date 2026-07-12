@@ -27,8 +27,10 @@ export default function PayrollToolbar({ companyId, exportRows }: { companyId: s
     const periodEnd = monthOffset === 0
       ? now
       : new Date(now.getFullYear(), now.getMonth() - monthOffset + 1, 0)
-    const startStr = periodStart.toISOString().slice(0, 10)
-    const endStr = periodEnd.toISOString().slice(0, 10)
+    // Local-date formatting — toISOString shifts across midnight in non-UTC timezones
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const startStr = fmt(periodStart)
+    const endStr = fmt(periodEnd)
 
     const [{ data: timesheets }, { data: contractors }, { data: existing }] = await Promise.all([
       supabase.from('timesheets').select('contractor_id, hours_worked')

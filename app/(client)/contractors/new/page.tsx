@@ -30,8 +30,19 @@ export default function NewContractorPage() {
     setLoading(true)
     setError('')
 
-    const { data: company } = await supabase.from('companies').select('id').single()
+    const { data: company } = await supabase.from('companies').select('id, plan').single()
     if (!company) { setError('Company not found'); setLoading(false); return }
+
+    // Enforce the plan's contractor limit
+    const PLAN_LIMITS: Record<string, number> = { trial: 3, starter: 3, growth: 10, enterprise: 999999 }
+    const { data: sub } = await supabase.from('subscriptions').select('contractor_limit').eq('company_id', company.id).maybeSingle()
+    const limit = sub?.contractor_limit ?? PLAN_LIMITS[company.plan ?? 'trial'] ?? 3
+    const { count } = await supabase.from('contractors').select('id', { count: 'exact', head: true }).eq('company_id', company.id)
+    if ((count ?? 0) >= limit) {
+      setError(`Your ${company.plan ?? 'trial'} plan allows up to ${limit} contractors. Upgrade in Settings to add more.`)
+      setLoading(false)
+      return
+    }
 
     const { error: err } = await supabase.from('contractors').insert({
       ...form,

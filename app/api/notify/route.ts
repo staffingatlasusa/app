@@ -96,6 +96,26 @@ export async function POST(request: Request) {
         })
         break
       }
+      case 'portal_invite': {
+        // Company owner invites their contractor to create a portal login
+        const { data: contractor } = await db.from('contractors')
+          .select('name, email, user_id, companies(name, owner_id)')
+          .eq('id', id).maybeSingle()
+        if (!contractor) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+        const co = contractor.companies as { name: string; owner_id: string } | null
+        if (co?.owner_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        if (contractor.user_id) return NextResponse.json({ error: 'Already has portal access' }, { status: 400 })
+        await sendRawEmail({
+          to: contractor.email,
+          subject: `${co?.name} invited you to StaffingAtlas`,
+          html: wrap(
+            `${co?.name} set you up on StaffingAtlas`,
+            `Create your account with this email address (${contractor.email}) and you'll get instant access to your timesheets, tasks, messages, and payroll summaries.`,
+            { label: 'Create your account', href: `${APP}/signup/contractor` }
+          ),
+        })
+        break
+      }
       default:
         return NextResponse.json({ error: 'Unknown event' }, { status: 400 })
     }

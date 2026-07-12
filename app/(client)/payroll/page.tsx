@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
+import { requireActivePlan } from '@/lib/plan'
 import { DollarSign } from 'lucide-react'
 import Link from 'next/link'
 import PayrollActions from './PayrollActions'
 import PayrollToolbar from './PayrollToolbar'
 
 export default async function PayrollPage() {
+  await requireActivePlan()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: company } = await supabase.from('companies').select('id').eq('owner_id', user!.id).single()

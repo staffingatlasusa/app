@@ -24,7 +24,7 @@ type Task = {
 }
 
 export default function KanbanBoard({
-  initialTasks, companyId
+  initialTasks, contractors, companyId
 }: {
   initialTasks: Task[]; contractors: { id: string; name: string }[]; companyId: string
 }) {
@@ -36,6 +36,14 @@ export default function KanbanBoard({
   async function moveTask(id: string, status: string) {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status } : t))
     await supabase.from('tasks').update({ status }).eq('id', id)
+  }
+
+  async function assignTask(id: string, contractorId: string) {
+    const contractor = contractors.find(c => c.id === contractorId) ?? null
+    setTasks(prev => prev.map(t => t.id === id
+      ? { ...t, assigned_to: contractorId || undefined, contractors: contractor ? { name: contractor.name } : null }
+      : t))
+    await supabase.from('tasks').update({ assigned_to: contractorId || null }).eq('id', id)
   }
 
   async function addTask(status: string) {
@@ -94,11 +102,18 @@ export default function KanbanBoard({
                         {new Date(task.due_date).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
                       </span>
                     )}
-                    {task.contractors?.name && (
-                      <span className="text-xs bg-navy/10 text-navy px-1.5 py-0.5 rounded font-medium ml-auto">
-                        {task.contractors.name.split(' ')[0]}
-                      </span>
-                    )}
+                    <select
+                      value={task.assigned_to ?? ''}
+                      onChange={e => assignTask(task.id, e.target.value)}
+                      className={`text-xs rounded px-1 py-0.5 ml-auto max-w-[110px] border-0 outline-none cursor-pointer ${
+                        task.assigned_to ? 'bg-navy/10 text-navy font-medium' : 'bg-slate-100 text-slate-400'
+                      }`}
+                    >
+                      <option value="">Unassigned</option>
+                      {contractors.map(c => (
+                        <option key={c.id} value={c.id}>{c.name.split(' ')[0]}</option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Move buttons */}
