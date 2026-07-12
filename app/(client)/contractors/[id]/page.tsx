@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 import PerformanceNotes from './PerformanceNotes'
 import DocumentVault from '@/components/DocumentVault'
 import ContractsCard from './ContractsCard'
+import ReviewBox from './ReviewBox'
 
 export default async function ContractorDetailPage({ params }: { params: { id: string } }) {
   await requireActivePlan()
@@ -35,6 +36,14 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
     .select('id, title, status, created_at, contractor_signed_at')
     .eq('contractor_id', contractor.id)
     .order('created_at', { ascending: false })
+
+  const [{ data: existingReview }, { data: marketProfile }] = await Promise.all([
+    supabase.from('reviews').select('id, rating, comment')
+      .eq('contractor_id', contractor.id).eq('company_id', company!.id).maybeSingle(),
+    contractor.user_id
+      ? supabase.from('contractor_profiles').select('id').eq('user_id', contractor.user_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ])
 
   const approvedHours = (timesheets ?? []).filter(t => t.status === 'approved')
     .reduce((s, t) => s + Number(t.hours_worked), 0)
@@ -103,6 +112,16 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
             initialNotes={notes ?? []}
           />
         </div>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-3">Review</h2>
+        <ReviewBox
+          companyId={company!.id}
+          contractorId={contractor.id}
+          contractorProfileId={marketProfile?.id ?? null}
+          existing={existingReview}
+        />
       </div>
 
       <div className="mt-8">

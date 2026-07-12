@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 type PublicContractor = {
   id: string; display_name: string; role: string | null; bio: string | null
   rate_usd: number; location: string; skills: string[]
+  avg_rating: number | null; review_count: number
 }
 
 // Cache for 60 seconds — talent browse doesn't need real-time updates
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from('contractor_profiles')
-      .select('id, name, role, bio, hourly_rate, country, skills')
+      .select('id, name, role, bio, hourly_rate, country, skills, reviews(rating)')
       .eq('status', 'approved')
       .order('hourly_rate', { ascending: true })
       .limit(200)
@@ -60,6 +61,7 @@ export async function GET(request: Request) {
     const contractors: PublicContractor[] = (data ?? []).map(row => {
       const parts = (row.name ?? '').trim().split(/\s+/)
       const display = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : parts[0] ?? 'Contractor'
+      const ratings = ((row.reviews ?? []) as { rating: number }[]).map(r => Number(r.rating))
       return {
         id: row.id,
         display_name: display,
@@ -68,6 +70,8 @@ export async function GET(request: Request) {
         rate_usd: Number(row.hourly_rate ?? 0),
         location: row.country ?? 'Remote',
         skills: row.skills ?? [],
+        avg_rating: ratings.length ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10 : null,
+        review_count: ratings.length,
       }
     })
 

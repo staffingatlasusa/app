@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, Clock, CheckSquare, DollarSign,
-  MessageSquare, Settings, LogOut, ChevronRight, Menu, X, Briefcase
+  MessageSquare, Settings, LogOut, ChevronRight, Menu, X, Briefcase, BarChart2
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -17,6 +17,7 @@ const NAV = [
   { href: '/tasks',        icon: CheckSquare,      label: 'Tasks' },
   { href: '/payroll',      icon: DollarSign,       label: 'Payroll' },
   { href: '/messages',     icon: MessageSquare,    label: 'Messages' },
+  { href: '/reports',      icon: BarChart2,        label: 'Reports' },
 ]
 
 export default function Sidebar() {
