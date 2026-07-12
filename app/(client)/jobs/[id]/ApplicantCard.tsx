@@ -29,6 +29,10 @@ export default function ApplicantCard({ application, profile, companyId, jobTitl
 }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [hireOpen, setHireOpen] = useState(false)
+  const [offerRate, setOfferRate] = useState(
+    String(application.expected_rate ?? profile?.hourly_rate ?? '')
+  )
   const router = useRouter()
   const supabase = createClient()
 
@@ -44,7 +48,10 @@ export default function ApplicantCard({ application, profile, companyId, jobTitl
     setError('')
 
     // Hiring creates the contractor record on the roster (linked to their login)
+    // at the rate the company confirmed in the hire dialog.
     if (to === 'hired' && profile) {
+      const agreedRate = parseFloat(offerRate)
+      if (!agreedRate || agreedRate <= 0) { setError('Enter a valid hourly rate'); setLoading(false); return }
       const { data: existing } = await supabase.from('contractors')
         .select('id').eq('company_id', companyId).eq('email', profile.email).maybeSingle()
       if (!existing) {
@@ -55,7 +62,7 @@ export default function ApplicantCard({ application, profile, companyId, jobTitl
           email: profile.email,
           role: profile.role ?? jobTitle,
           country: profile.country ?? 'Philippines',
-          hourly_rate: application.expected_rate ?? profile.hourly_rate ?? 0,
+          hourly_rate: agreedRate,
           currency: 'USD',
           contract_type: 'fulltime',
           pool_type: 'marketplace',
@@ -64,6 +71,7 @@ export default function ApplicantCard({ application, profile, companyId, jobTitl
         })
         if (insErr) { setError(insErr.message); setLoading(false); return }
       }
+      setHireOpen(false)
     }
 
     const { error: upErr } = await supabase.from('job_applications')
@@ -141,7 +149,9 @@ export default function ApplicantCard({ application, profile, companyId, jobTitl
 
       <div className="flex items-center gap-2 mt-4">
         {NEXT_STAGES[application.status]?.map(s => (
-          <button key={s.to} onClick={() => move(s.to)} disabled={loading}
+          <button key={s.to}
+            onClick={() => s.to === 'hired' ? setHireOpen(true) : move(s.to)}
+            disabled={loading}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
               s.to === 'rejected' ? 'bg-red-50 text-red-600 hover:bg-red-100' :
               s.to === 'hired' ? 'bg-green-600 text-white hover:bg-green-700' :
@@ -154,6 +164,32 @@ export default function ApplicantCard({ application, profile, companyId, jobTitl
           applied {new Date(application.created_at).toLocaleDateString()}
         </span>
       </div>
+
+      {hireOpen && (
+        <div className="mt-3 border-2 border-green-200 bg-green-50/50 rounded-xl p-4">
+          <p className="text-sm font-semibold text-slate-900 mb-1">Confirm hire — set the agreed rate</p>
+          <p className="text-xs text-slate-500 mb-3">
+            They asked ${Number(application.expected_rate ?? profile.hourly_rate ?? 0).toFixed(2)}/hr.
+            You can offer a different rate — make sure you&apos;ve agreed on it in messages first.
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+              <input type="number" step="0.5" min="1" value={offerRate}
+                onChange={e => setOfferRate(e.target.value)}
+                className="w-28 pl-7 pr-2 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-navy" />
+            </div>
+            <span className="text-xs text-slate-400">/hr USD</span>
+            <button onClick={() => move('hired')} disabled={loading}
+              className="ml-auto px-4 py-2 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50">
+              {loading ? 'Hiring…' : `Hire at $${offerRate || '0'}/hr`}
+            </button>
+            <button onClick={() => setHireOpen(false)} className="px-3 py-2 text-xs text-slate-400 hover:text-slate-600">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
