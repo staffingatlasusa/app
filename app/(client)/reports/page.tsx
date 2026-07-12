@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getMyCompany } from '@/lib/company'
 import { requireActivePlan } from '@/lib/plan'
 import { BarChart2 } from 'lucide-react'
 import ExportReportButton from './ExportReportButton'
@@ -7,7 +8,7 @@ export default async function ReportsPage() {
   await requireActivePlan()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: company } = await supabase.from('companies').select('id').eq('owner_id', user!.id).single()
+  const { company } = await getMyCompany(supabase, user!)
 
   const sixMonthsAgo = new Date()
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)

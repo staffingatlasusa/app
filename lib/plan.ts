@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getMyCompany } from '@/lib/company'
 
 /**
  * Blocks access to app pages when the trial has expired (or plan cancelled)
@@ -11,11 +12,7 @@ export async function requireActivePlan() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: company } = await supabase
-    .from('companies')
-    .select('id, plan, trial_ends')
-    .eq('owner_id', user.id)
-    .maybeSingle()
+  const { company } = await getMyCompany(supabase, user)
   if (!company) return // no company yet — pages show their own empty state
 
   const trialExpired = company.plan === 'trial'

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getMyCompany } from '@/lib/company'
 import { requireActivePlan } from '@/lib/plan'
 import KanbanBoard from './KanbanBoard'
 
@@ -6,7 +7,7 @@ export default async function TasksPage() {
   await requireActivePlan()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: company } = await supabase.from('companies').select('id').eq('owner_id', user!.id).single()
+  const { company } = await getMyCompany(supabase, user!)
 
   const [tasksRes, contractorsRes] = await Promise.all([
     supabase.from('tasks').select('*, contractors(name)').eq('company_id', company?.id ?? '').order('position'),

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getMyCompany } from '@/lib/company'
 import { requireActivePlan } from '@/lib/plan'
 import { Users, Clock, CheckSquare, DollarSign, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -28,7 +29,7 @@ async function getData(companyId: string) {
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: company } = await supabase.from('companies').select('id, name, plan, trial_ends').eq('owner_id', user!.id).single()
+  const { company } = await getMyCompany(supabase, user!)
 
   if (!company) {
     return (

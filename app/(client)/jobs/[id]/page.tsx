@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getMyCompany } from '@/lib/company'
 import { requireActivePlan } from '@/lib/plan'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -18,7 +19,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
   await requireActivePlan()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: company } = await supabase.from('companies').select('id').eq('owner_id', user!.id).single()
+  const { company } = await getMyCompany(supabase, user!)
 
   const { data: job } = await supabase
     .from('job_postings')

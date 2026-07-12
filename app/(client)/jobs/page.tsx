@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getMyCompany } from '@/lib/company'
 import { requireActivePlan } from '@/lib/plan'
 import Link from 'next/link'
 import { Briefcase } from 'lucide-react'
@@ -8,7 +9,7 @@ export default async function JobsPage() {
   await requireActivePlan()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: company } = await supabase.from('companies').select('id').eq('owner_id', user!.id).single()
+  const { company } = await getMyCompany(supabase, user!)
 
   const { data: jobs } = await supabase
     .from('job_postings')
