@@ -28,7 +28,13 @@ export default function SettingsForm({ company, userEmail }: { company: Company 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    await supabase.from('companies').update(form).eq('id', company?.id)
+    if (company?.id) {
+      await supabase.from('companies').update(form).eq('id', company.id)
+    } else {
+      // Recovery path: company row was never created at signup
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) await supabase.from('companies').insert({ ...form, owner_id: user.id })
+    }
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
