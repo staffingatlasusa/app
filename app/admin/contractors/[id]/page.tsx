@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import ContractorActions from './ContractorActions'
 
 export default async function AdminContractorDetailPage({ params }: { params: { id: string } }) {
   const db = createAdminClient()
@@ -40,11 +41,14 @@ export default async function AdminContractorDetailPage({ params }: { params: { 
       <Link href="/admin/contractors" className="inline-flex items-center gap-1.5 text-xs text-[#8B8FA8] hover:text-[#F0F2FF] mb-4 transition-colors">
         <ArrowLeft size={13} /> All contractors
       </Link>
-      <div className="flex items-center gap-3 mb-1">
-        <h1 className="text-2xl font-bold">{contractor.name}</h1>
-        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-          contractor.status === 'active' ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-[#8B8FA8]/10 text-[#8B8FA8]'
-        }`}>{contractor.status}</span>
+      <div className="flex items-start justify-between mb-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">{contractor.name}</h1>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+            contractor.status === 'active' ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-[#8B8FA8]/10 text-[#8B8FA8]'
+          }`}>{contractor.status}</span>
+        </div>
+        <ContractorActions contractor={contractor} />
       </div>
       <p className="text-sm text-[#8B8FA8] mb-6">{contractor.role} · {approvedHours.toFixed(1)} approved hours all-time</p>
 

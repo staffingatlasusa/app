@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import CompanyActions from './CompanyActions'
 
 export default async function AdminCompanyDetailPage({ params }: { params: { id: string } }) {
   const db = createAdminClient()
@@ -39,7 +40,10 @@ export default async function AdminCompanyDetailPage({ params }: { params: { id:
       <Link href="/admin/companies" className="inline-flex items-center gap-1.5 text-xs text-[#8B8FA8] hover:text-[#F0F2FF] mb-4 transition-colors">
         <ArrowLeft size={13} /> All companies
       </Link>
-      <h1 className="text-2xl font-bold mb-1">{company.name}</h1>
+      <div className="flex items-start justify-between mb-1">
+        <h1 className="text-2xl font-bold">{company.name}</h1>
+        <CompanyActions company={company} />
+      </div>
       <p className="text-sm text-[#8B8FA8] mb-6">{(contractors ?? []).length} contractors · {approvedHours.toFixed(1)} approved hours</p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
