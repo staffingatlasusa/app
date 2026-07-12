@@ -5,13 +5,14 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, Clock, CheckSquare, DollarSign,
-  MessageSquare, Settings, LogOut, ChevronRight, Menu, X
+  MessageSquare, Settings, LogOut, ChevronRight, Menu, X, Briefcase
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const NAV = [
   { href: '/dashboard',    icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/contractors',  icon: Users,            label: 'Contractors' },
+  { href: '/jobs',         icon: Briefcase,        label: 'Jobs' },
   { href: '/timesheets',   icon: Clock,            label: 'Timesheets' },
   { href: '/tasks',        icon: CheckSquare,      label: 'Tasks' },
   { href: '/payroll',      icon: DollarSign,       label: 'Payroll' },

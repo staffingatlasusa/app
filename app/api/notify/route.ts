@@ -125,6 +125,53 @@ export async function POST(request: Request) {
         })
         break
       }
+      case 'new_application': {
+        // Applicant notifies the company owner of their own application
+        const { data: app } = await db.from('job_applications')
+          .select('user_id, job_postings(title, companies(name, owner_id)), contractor_profiles(name)')
+          .eq('id', id).maybeSingle()
+        if (!app || app.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        const job = app.job_postings as unknown as { title: string; companies: { name: string; owner_id: string } | null } | null
+        const ownerId = job?.companies?.owner_id
+        if (!ownerId) break
+        const { data: { user: owner } } = await db.auth.admin.getUserById(ownerId)
+        if (!owner?.email) break
+        const applicant = app.contractor_profiles as unknown as { name: string } | null
+        await sendRawEmail({
+          to: owner.email,
+          subject: `New applicant for ${job?.title}`,
+          html: wrap(
+            `${applicant?.name ?? 'A contractor'} applied to ${job?.title}`,
+            'Review their profile, pitch, and expected rate in your applicant pipeline.',
+            { label: 'Review applicants', href: `${APP}/jobs` }
+          ),
+        })
+        break
+      }
+      case 'application_status': {
+        // Company owner notifies the applicant of a stage change
+        const { data: app } = await db.from('job_applications')
+          .select('status, user_id, job_postings(title, companies(name, owner_id))')
+          .eq('id', id).maybeSingle()
+        if (!app) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+        const job = app.job_postings as unknown as { title: string; companies: { name: string; owner_id: string } | null } | null
+        if (job?.companies?.owner_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        const { data: { user: applicant } } = await db.auth.admin.getUserById(app.user_id)
+        if (!applicant?.email) break
+        const hired = app.status === 'hired'
+        await sendRawEmail({
+          to: applicant.email,
+          subject: hired ? `You're hired — ${job?.title}!` : `Application update — ${job?.title}`,
+          html: wrap(
+            hired ? `${job?.companies?.name} hired you 🎉` : `You've been moved to "${app.status}"`,
+            hired
+              ? 'You now have full portal access for this company — timesheets, tasks, messages, and payroll.'
+              : `${job?.companies?.name} moved your application for ${job?.title} to the "${app.status}" stage.`,
+            { label: hired ? 'Open your portal' : 'View your applications', href: hired ? `${APP}/portal` : `${APP}/portal/jobs` }
+          ),
+        })
+        break
+      }
       case 'portal_invite': {
         // Company owner invites their contractor to create a portal login
         const { data: contractor } = await db.from('contractors')

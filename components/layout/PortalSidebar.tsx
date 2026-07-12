@@ -5,12 +5,13 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Clock, CheckSquare, DollarSign,
-  MessageSquare, User, LogOut, ChevronRight, Menu, X, FileText
+  MessageSquare, User, LogOut, ChevronRight, Menu, X, FileText, Briefcase
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const NAV = [
   { href: '/portal',            icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/portal/jobs',       icon: Briefcase,       label: 'Find Work' },
   { href: '/portal/timesheets', icon: Clock,           label: 'Timesheets' },
   { href: '/portal/tasks',      icon: CheckSquare,     label: 'Tasks' },
   { href: '/portal/messages',   icon: MessageSquare,   label: 'Messages' },
