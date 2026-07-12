@@ -38,7 +38,7 @@ export default async function PortalDashboard() {
     supabase.from('timesheets').select('hours_worked, status, date')
       .eq('contractor_id', c.id).gte('date', monthStart),
     supabase.from('tasks').select('id, title, status, due_date')
-      .eq('contractor_id', c.id).neq('status', 'done').order('due_date', { ascending: true }).limit(5),
+      .eq('assigned_to', c.id).neq('status', 'done').order('due_date', { ascending: true }).limit(5),
   ])
 
   const ts = timesheets ?? []

@@ -19,7 +19,7 @@ export default async function PortalTasksPage() {
   const { data: tasks } = await supabase
     .from('tasks')
     .select('id, title, description, status, priority, due_date')
-    .eq('contractor_id', ctx.contractor.id)
+    .eq('assigned_to', ctx.contractor.id)
     .order('created_at', { ascending: false })
 
   const list = tasks ?? []
