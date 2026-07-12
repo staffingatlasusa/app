@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Clock, CheckSquare, DollarSign,
-  MessageSquare, User, LogOut, ChevronRight, Menu, X, FileText, Briefcase
+  MessageSquare, User, LogOut, ChevronRight, Menu, X, FileText, Briefcase, FileSignature
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -17,6 +17,7 @@ const NAV = [
   { href: '/portal/messages',   icon: MessageSquare,   label: 'Messages' },
   { href: '/portal/payroll',    icon: DollarSign,      label: 'Payroll' },
   { href: '/portal/documents',  icon: FileText,        label: 'Documents' },
+  { href: '/portal/contracts',  icon: FileSignature,   label: 'Contracts' },
 ]
 
 export default function PortalSidebar({ contractorName }: { contractorName: string }) {

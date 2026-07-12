@@ -5,12 +5,13 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import PerformanceNotes from './PerformanceNotes'
 import DocumentVault from '@/components/DocumentVault'
+import ContractsCard from './ContractsCard'
 
 export default async function ContractorDetailPage({ params }: { params: { id: string } }) {
   await requireActivePlan()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: company } = await supabase.from('companies').select('id').eq('owner_id', user!.id).single()
+  const { data: company } = await supabase.from('companies').select('id, name').eq('owner_id', user!.id).single()
 
   const { data: contractor } = await supabase
     .from('contractors')
@@ -28,6 +29,12 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
     supabase.from('documents').select('id, name, storage_path, category, size, created_at')
       .eq('contractor_id', contractor.id).order('created_at', { ascending: false }),
   ])
+
+  const { data: contracts } = await supabase
+    .from('contracts')
+    .select('id, title, status, created_at, contractor_signed_at')
+    .eq('contractor_id', contractor.id)
+    .order('created_at', { ascending: false })
 
   const approvedHours = (timesheets ?? []).filter(t => t.status === 'approved')
     .reduce((s, t) => s + Number(t.hours_worked), 0)
@@ -96,6 +103,19 @@ export default async function ContractorDetailPage({ params }: { params: { id: s
             initialNotes={notes ?? []}
           />
         </div>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400 mb-3">Contracts</h2>
+        <ContractsCard
+          companyId={company!.id}
+          companyName={company!.name}
+          contractor={{
+            id: contractor.id, name: contractor.name, role: contractor.role,
+            hourly_rate: Number(contractor.hourly_rate), currency: contractor.currency,
+          }}
+          initialContracts={contracts ?? []}
+        />
       </div>
 
       <div className="mt-8">

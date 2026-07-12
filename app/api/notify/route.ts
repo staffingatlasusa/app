@@ -172,6 +172,50 @@ export async function POST(request: Request) {
         })
         break
       }
+      case 'contract_sent': {
+        // Company owner sends a contract to the contractor
+        const { data: contract } = await db.from('contracts')
+          .select('title, contractors(name, email), companies(name, owner_id)')
+          .eq('id', id).maybeSingle()
+        if (!contract) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+        const co = contract.companies as unknown as { name: string; owner_id: string } | null
+        if (co?.owner_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        const contractor = contract.contractors as unknown as { name: string; email: string } | null
+        if (!contractor?.email) break
+        await sendRawEmail({
+          to: contractor.email,
+          subject: `Contract ready for your signature — ${co?.name}`,
+          html: wrap(
+            `${co?.name} sent you a contract`,
+            `"${contract.title}" is awaiting your electronic signature in your portal. Review the terms and sign when ready.`,
+            { label: 'Review & sign', href: `${APP}/portal/contracts` }
+          ),
+        })
+        break
+      }
+      case 'contract_signed': {
+        // Contractor signed — notify the company owner
+        const { data: contract } = await db.from('contracts')
+          .select('title, contractor_id, contractors(name, user_id), companies(owner_id)')
+          .eq('id', id).maybeSingle()
+        if (!contract) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+        const signer = contract.contractors as unknown as { name: string; user_id: string } | null
+        if (signer?.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        const ownerId = (contract.companies as unknown as { owner_id: string } | null)?.owner_id
+        if (!ownerId) break
+        const { data: { user: owner } } = await db.auth.admin.getUserById(ownerId)
+        if (!owner?.email) break
+        await sendRawEmail({
+          to: owner.email,
+          subject: `Contract signed — ${signer?.name}`,
+          html: wrap(
+            `${signer?.name} signed "${contract.title}"`,
+            'The contract is now active. You can view or print the fully executed copy anytime.',
+            { label: 'View contract', href: `${APP}/contractors/${contract.contractor_id}` }
+          ),
+        })
+        break
+      }
       case 'portal_invite': {
         // Company owner invites their contractor to create a portal login
         const { data: contractor } = await db.from('contractors')
